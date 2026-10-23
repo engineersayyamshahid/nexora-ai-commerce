@@ -1,0 +1,31 @@
+1: First i create the nextjs app :
+    npx create-next-app@latest my-app --yes
+    npm run dev
+
+2: Then i make the global variable in globals.css of color btn-color etc.
+
+3: Then i install the shadcn :  npx shadcn@latest init
+    To install any component in project of shadcn. 
+    Follow this :  npx shadcn@latest add card badge dialog input label separator table textarea 
+    npx shadcn@latest add carousel checkbox collapsible command  popover radio-group scroll-area tooltip
+
+4: Then i make the Header, Footer and Container File in component Folder. 
+     Think of a Container as a box that keeps all your website content aligned and prevents it from stretching across the entire screen.
+     Without a container:   
+     -------------------------------------------------------------
+     This text starts from the very left and goes to the very right.
+     -------------------------------------------------------------
+
+     With a container:
+
+     -------------------------------------------------------------
+        This text stays nicely in the center
+        with space on both sides.
+    -------------------------------------------------------------
+     That's why almost every website has a container.
+
+5: Then i make the navbar , header , Footer
+
+6: Then i make the constants folder in which put the TS file for static data.
+
+7: To install sanity : npx sanity init --output-path studio
