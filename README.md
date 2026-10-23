@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ⚡ Nexora AI Commerce
 
 ### Intelligent Commerce. Predictive Insights. Smarter Shopping.
@@ -523,3 +524,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
  -->
+=======
+# nexora-ai-commerce
+AI-powered commerce platform with predictive analytics, intelligent risk detection, personalized shopping, and AI customer support.
+>>>>>>> 40cfcb0acd8a4dd91789e8777b5f9625b909f07c
