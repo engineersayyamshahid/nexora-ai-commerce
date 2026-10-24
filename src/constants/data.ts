@@ -1,3 +1,5 @@
+import { ValueError } from "sanity";
+
 export const headerData = [
     {title : "Home", href:"/"},
     {title : "Shop", href:"/shop"},
@@ -24,3 +26,12 @@ export const categoriesData = [
   { title: "Kitchen Appliances", href: "kitchen-appliances" },
   { title: "Gadget Accessories", href: "gadget-accessories" },
 ];
+
+export const productType = [
+  { title: "Gadget " , value:"gadget"},
+  { title: "Appliances", ValueError: "appliances" },
+  { title: "Refrigernators", value: "refrigerators" },
+  { title: "Others", value : "others",}
+];
+
+
