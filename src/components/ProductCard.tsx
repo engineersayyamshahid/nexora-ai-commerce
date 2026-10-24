@@ -7,14 +7,13 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Flame,
-  Heart,
   ShoppingBag,
   Star,
   ImageOff,
 } from "lucide-react";
 
 import AddToCartButton from "@/components/AddToCartButton";
-import FavouriteButton from "@/components/FavouriteButton";
+import AddToWishlistButton from "@/components/AddToWishlistButton";
 
 interface ProductCardProps {
   product: Product;
@@ -104,10 +103,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
       </div>
 
-      {/* Wishlist */}
-      <div className="absolute right-5 top-5 z-20">
-        <FavouriteButton showProduct product={product} />
-      </div>
+      {/* Wishlist Button */}
+      <AddToWishlistButton product={product} />
 
       {/* Product image */}
       <Link
@@ -215,6 +212,7 @@ export default ProductCard;
 
 
 
+
 // "use client";
 
 // import type { Product } from "../../sanity.types";
@@ -240,9 +238,15 @@ export default ProductCard;
 // const ProductCard = ({ product }: ProductCardProps) => {
 //   const [imageError, setImageError] = useState(false);
 
-//   const name = product.name || product.title || "Untitled product";
+//   // Cast product / access properties safely to satisfy TypeScript
+//   const rawProduct = product as Product & {
+//     title?: string;
+//     previousPrice?: number;
+//   };
+
+//   const name = product.name || rawProduct.title || "Untitled product";
 //   const price = product.price ?? 0;
-//   const previousPrice = product.previousPrice ?? 0;
+//   const previousPrice = rawProduct.previousPrice ?? 0;
 //   const stock = product.stock ?? 0;
 
 //   const status = String(product.status ?? "").toLowerCase();
@@ -285,7 +289,9 @@ export default ProductCard;
 //     .map((category) => {
 //       if (typeof category === "string") return category;
 
-//       return category?.title ?? "";
+//       return (category as { title?: string; name?: string })?.title || 
+//              (category as { title?: string; name?: string })?.name || 
+//              "";
 //     })
 //     .filter(Boolean);
 
@@ -421,3 +427,4 @@ export default ProductCard;
 // };
 
 // export default ProductCard;
+

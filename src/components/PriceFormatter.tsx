@@ -1,6 +1,13 @@
 
 "use client";
 
+import { twMerge } from "tailwind-merge";
+
+interface Props{
+  amount: number | undefined;
+  className?:string;
+}
+
 interface PriceFormatterProps {
   amount: number;
   className?: string;
