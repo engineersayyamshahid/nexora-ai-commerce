@@ -1,9 +1,8 @@
-
 "use client";
 
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-import { PackageOpen } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const NoProductAvailable = ({
   selectedTab,
@@ -15,7 +14,7 @@ const NoProductAvailable = ({
   return (
     <div
       className={cn(
-        "mt-10 flex min-h-80 w-full flex-col items-center justify-center space-y-4 rounded-lg bg-gray-100 py-10 text-center",
+        "flex flex-col items-center justify-center py-10 min-h-80 space-y-4 text-center bg-gray-100 rounded-lg w-full mt-10",
         className
       )}
     >
@@ -24,10 +23,8 @@ const NoProductAvailable = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
-
-        <h2 className="mt-4 text-2xl font-bold tracking-tight text-gray-900">
-          No Products Available
+        <h2 className="text-2xl font-bold text-gray-800">
+          No Product Available
         </h2>
       </motion.div>
 
@@ -37,12 +34,21 @@ const NoProductAvailable = ({
         transition={{ delay: 0.2, duration: 0.5 }}
         className="text-gray-600"
       >
-        We&apos;re sorry, but there are no products matching{" "}
-        <span className="font-semibold text-darkColor">
-          {selectedTab || "your selected"}
+        We&apos;re sorry, but there are no products matching on{" "}
+        <span className="text-base font-semibold text-darkColor">
+          {selectedTab}
         </span>{" "}
         criteria at the moment.
       </motion.p>
+
+      <motion.div
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ repeat: Infinity, duration: 1.5 }}
+        className="flex items-center space-x-2 text-shop_dark_green"
+      >
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span>We&apos;re restocking shortly</span>
+      </motion.div>
 
       <motion.p
         initial={{ opacity: 0 }}
@@ -50,7 +56,7 @@ const NoProductAvailable = ({
         transition={{ delay: 0.4, duration: 0.5 }}
         className="text-sm text-gray-500"
       >
-        Please check back later or explore other product categories.
+        Please check back later or explore our other product categories.
       </motion.p>
     </div>
   );
