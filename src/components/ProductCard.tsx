@@ -1,106 +1,210 @@
 "use client";
 
-import type { Product } from "@/sanity.types";
+import type { Product } from "../../sanity.types";
 import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
-import React from "react";
-import { Heart, ShoppingBag, Star, Flame } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import {
+  Flame,
+  Heart,
+  ShoppingBag,
+  Star,
+  ImageOff,
+} from "lucide-react";
 
-const ProductCard = ({ product }: { product: Product }) => {
+import AddToCartButton from "@/components/AddToCartButton";
+import FavouriteButton from "@/components/FavouriteButton";
+
+interface ProductCardProps {
+  product: Product;
+}
+
+const ProductCard = ({ product }: ProductCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
+  // Cast product / access properties safely to satisfy TypeScript
+  const rawProduct = product as Product & {
+    title?: string;
+    previousPrice?: number;
+  };
+
+  const name = product.name || rawProduct.title || "Untitled product";
+  const price = product.price ?? 0;
+  const previousPrice = rawProduct.previousPrice ?? 0;
+  const stock = product.stock ?? 0;
+
+  const status = String(product.status ?? "").toLowerCase();
+
+  const isHot = status === "hot";
+  const isNew = status === "new";
+
+  const isSale =
+    status === "sale" ||
+    (previousPrice > 0 && previousPrice > price);
+
+  const discount =
+    previousPrice > price && previousPrice > 0
+      ? Math.round(((previousPrice - price) / previousPrice) * 100)
+      : 0;
+
   const image = product.images?.[0];
 
+  const imageUrl = image
+    ? urlFor(image).width(800).height(800).fit("max").url()
+    : null;
+
+  // Use only real review data when available.
+  const productData = product as Product & {
+    rating?: number;
+    reviewsCount?: number;
+  };
+
+  const rating = Math.min(
+    5,
+    Math.max(0, Number(productData.rating ?? 0))
+  );
+
+  const reviewsCount = Math.max(
+    0,
+    Number(productData.reviewsCount ?? 0)
+  );
+
+  const categories = (product.categories ?? [])
+    .map((category) => {
+      if (typeof category === "string") return category;
+
+      return (category as { title?: string; name?: string })?.title || 
+             (category as { title?: string; name?: string })?.name || 
+             "";
+    })
+    .filter(Boolean);
+
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 hover:shadow-lg">
-      {/* Top Badges & Wishlist */}
-      <div className="absolute left-4 top-4 z-10 flex items-center gap-1">
-        {product.status === "hot" && (
-          <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-600">
-            <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:border-shop_light_green/40 hover:shadow-xl sm:p-4">
+      {/* Product badges */}
+      <div className="absolute left-5 top-5 z-20 flex flex-wrap gap-1.5">
+        {isHot && (
+          <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
+            <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
             Hot
           </span>
         )}
-        {product.status === "sale" && (
-          <span className="rounded-full border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 shadow-sm">
-            Sale!
+
+        {isSale && (
+          <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+            Sale{discount > 0 ? ` -${discount}%` : ""}
+          </span>
+        )}
+
+        {isNew && (
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+            New
           </span>
         )}
       </div>
 
-      <button
-        aria-label="Add to wishlist"
-        className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-1.5 text-gray-600 backdrop-blur-sm transition-colors hover:bg-white hover:text-red-500 shadow-sm"
-      >
-        <Heart className="w-4 h-4" />
-      </button>
-
-      {/* Product Image */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-md bg-shop_light_bg mb-3">
-        {image && (
-          <Image
-            src={urlFor(image).url()}
-            alt={product.name || product.title || "Product image"}
-            loading="lazy"
-            width={700}
-            height={700}
-            className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
-          />
-        )}
+      {/* Wishlist */}
+      <div className="absolute right-5 top-5 z-20">
+        <FavouriteButton showProduct product={product} />
       </div>
 
-      {/* Product Info */}
-      <div className="flex flex-1 flex-col justify-between">
-        <div>
-          {/* Categories */}
-          {product.categories?.length > 0 && (
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-1">
-              {product.categories
-                .map((cat) => (typeof cat === "string" ? cat : cat.title))
-                .join(", ")}
-            </p>
+      {/* Product image */}
+      <Link
+        href={`/product/${product.slug?.current ?? product._id}`}
+        aria-label={`View ${name}`}
+        className="block"
+      >
+        <div className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-shop_light_bg">
+          {imageUrl && !imageError ? (
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              unoptimized
+              onError={() => setImageError(true)}
+              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <ImageOff className="h-10 w-10" />
+              <span className="text-xs">Image unavailable</span>
+            </div>
           )}
+        </div>
+      </Link>
 
-          {/* Title */}
-          <h3 className="line-clamp-1 font-semibold text-gray-900 group-hover:text-shop_dark_green transition-colors">
-            {product.name || product.title || "Untitled product"}
+      {/* Product information */}
+      <div className="flex flex-1 flex-col">
+        {categories.length > 0 && (
+          <p className="mb-1 line-clamp-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
+            {categories.join(", ")}
+          </p>
+        )}
+
+        <Link href={`/product/${product.slug?.current ?? product._id}`}>
+          <h3 className="line-clamp-2 min-h-10 font-semibold text-gray-900 transition-colors group-hover:text-shop_dark_green">
+            {name}
           </h3>
+        </Link>
 
-          {/* Rating & Reviews */}
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <div className="flex items-center text-shop_dark_green">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-3.5 h-3.5 fill-current" />
+        {/* Actual rating data only */}
+        {rating > 0 && (
+          <div className="mt-2 flex items-center gap-1.5">
+            <div className="flex items-center text-amber-400">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-3.5 w-3.5 ${
+                    star <= rating ? "fill-current" : "text-gray-200"
+                  }`}
+                />
               ))}
             </div>
-            <span className="text-xs text-gray-500">
-              {product.reviewsCount || 5} Reviews
-            </span>
-          </div>
 
-          {/* Stock Status */}
-          <p className="text-xs text-gray-600 mt-2">
-            In Stock <span className="font-semibold text-gray-800">{product.stock ?? 10}</span>
-          </p>
+            {reviewsCount > 0 && (
+              <span className="text-xs text-gray-500">
+                ({reviewsCount})
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Stock */}
+        <p
+          className={`mt-2 text-xs ${
+            stock > 0 ? "text-emerald-700" : "text-red-600"
+          }`}
+        >
+          {stock > 0 ? (
+            <>
+              In stock: <span className="font-semibold">{stock}</span>
+            </>
+          ) : (
+            "Out of stock"
+          )}
+        </p>
+
+        {/* Price */}
+        <div className="mt-3 flex flex-wrap items-baseline gap-2">
+          <span className="text-lg font-bold text-gray-900">
+            ${price.toFixed(2)}
+          </span>
+
+          {previousPrice > price && (
+            <span className="text-sm text-gray-400 line-through">
+              ${previousPrice.toFixed(2)}
+            </span>
+          )}
         </div>
 
-        {/* Price & Add to Cart */}
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {product.price != null && (
-              <span className="font-bold text-gray-900">
-                ${product.price.toFixed(2)}
-              </span>
-            )}
-            {product.previousPrice && (
-              <span className="text-xs text-gray-400 line-through">
-                ${product.previousPrice.toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          <button className="flex items-center gap-1.5 rounded-full bg-shop_dark_green px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-shop_dark_green/90">
-            <ShoppingBag className="w-3.5 h-3.5" />
-            Add to Cart
-          </button>
+        {/* ONE add-to-cart component */}
+        <div className="mt-auto pt-4">
+          <AddToCartButton
+            product={product}
+            className="h-10 rounded-full text-xs sm:text-sm"
+          />
         </div>
       </div>
     </article>
@@ -108,3 +212,212 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 export default ProductCard;
+
+
+
+// "use client";
+
+// import type { Product } from "../../sanity.types";
+// import { urlFor } from "@/sanity/lib/image";
+// import Image from "next/image";
+// import Link from "next/link";
+// import { useState } from "react";
+// import {
+//   Flame,
+//   Heart,
+//   ShoppingBag,
+//   Star,
+//   ImageOff,
+// } from "lucide-react";
+
+// import AddToCartButton from "@/components/AddToCartButton";
+// import FavouriteButton from "@/components/FavouriteButton";
+
+// interface ProductCardProps {
+//   product: Product;
+// }
+
+// const ProductCard = ({ product }: ProductCardProps) => {
+//   const [imageError, setImageError] = useState(false);
+
+//   const name = product.name || product.title || "Untitled product";
+//   const price = product.price ?? 0;
+//   const previousPrice = product.previousPrice ?? 0;
+//   const stock = product.stock ?? 0;
+
+//   const status = String(product.status ?? "").toLowerCase();
+
+//   const isHot = status === "hot";
+//   const isNew = status === "new";
+
+//   const isSale =
+//     status === "sale" ||
+//     (previousPrice > 0 && previousPrice > price);
+
+//   const discount =
+//     previousPrice > price && previousPrice > 0
+//       ? Math.round(((previousPrice - price) / previousPrice) * 100)
+//       : 0;
+
+//   const image = product.images?.[0];
+
+//   const imageUrl = image
+//     ? urlFor(image).width(800).height(800).fit("max").url()
+//     : null;
+
+//   // Use only real review data when available.
+//   const productData = product as Product & {
+//     rating?: number;
+//     reviewsCount?: number;
+//   };
+
+//   const rating = Math.min(
+//     5,
+//     Math.max(0, Number(productData.rating ?? 0))
+//   );
+
+//   const reviewsCount = Math.max(
+//     0,
+//     Number(productData.reviewsCount ?? 0)
+//   );
+
+//   const categories = (product.categories ?? [])
+//     .map((category) => {
+//       if (typeof category === "string") return category;
+
+//       return category?.title ?? "";
+//     })
+//     .filter(Boolean);
+
+//   return (
+//     <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:border-shop_light_green/40 hover:shadow-xl sm:p-4">
+//       {/* Product badges */}
+//       <div className="absolute left-5 top-5 z-20 flex flex-wrap gap-1.5">
+//         {isHot && (
+//           <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
+//             <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
+//             Hot
+//           </span>
+//         )}
+
+//         {isSale && (
+//           <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+//             Sale{discount > 0 ? ` -${discount}%` : ""}
+//           </span>
+//         )}
+
+//         {isNew && (
+//           <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+//             New
+//           </span>
+//         )}
+//       </div>
+
+//       {/* Wishlist */}
+//       <div className="absolute right-5 top-5 z-20">
+//         <FavouriteButton showProduct product={product} />
+//       </div>
+
+//       {/* Product image */}
+//       <Link
+//         href={`/product/${product.slug?.current ?? product._id}`}
+//         aria-label={`View ${name}`}
+//         className="block"
+//       >
+//         <div className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg bg-shop_light_bg">
+//           {imageUrl && !imageError ? (
+//             <Image
+//               src={imageUrl}
+//               alt={name}
+//               fill
+//               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+//               unoptimized
+//               onError={() => setImageError(true)}
+//               className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+//             />
+//           ) : (
+//             <div className="flex flex-col items-center gap-2 text-gray-400">
+//               <ImageOff className="h-10 w-10" />
+//               <span className="text-xs">Image unavailable</span>
+//             </div>
+//           )}
+//         </div>
+//       </Link>
+
+//       {/* Product information */}
+//       <div className="flex flex-1 flex-col">
+//         {categories.length > 0 && (
+//           <p className="mb-1 line-clamp-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 sm:text-xs">
+//             {categories.join(", ")}
+//           </p>
+//         )}
+
+//         <Link href={`/product/${product.slug?.current ?? product._id}`}>
+//           <h3 className="line-clamp-2 min-h-10 font-semibold text-gray-900 transition-colors group-hover:text-shop_dark_green">
+//             {name}
+//           </h3>
+//         </Link>
+
+//         {/* Actual rating data only */}
+//         {rating > 0 && (
+//           <div className="mt-2 flex items-center gap-1.5">
+//             <div className="flex items-center text-amber-400">
+//               {[1, 2, 3, 4, 5].map((star) => (
+//                 <Star
+//                   key={star}
+//                   className={`h-3.5 w-3.5 ${
+//                     star <= rating ? "fill-current" : "text-gray-200"
+//                   }`}
+//                 />
+//               ))}
+//             </div>
+
+//             {reviewsCount > 0 && (
+//               <span className="text-xs text-gray-500">
+//                 ({reviewsCount})
+//               </span>
+//             )}
+//           </div>
+//         )}
+
+//         {/* Stock */}
+//         <p
+//           className={`mt-2 text-xs ${
+//             stock > 0 ? "text-emerald-700" : "text-red-600"
+//           }`}
+//         >
+//           {stock > 0 ? (
+//             <>
+//               In stock: <span className="font-semibold">{stock}</span>
+//             </>
+//           ) : (
+//             "Out of stock"
+//           )}
+//         </p>
+
+//         {/* Price */}
+//         <div className="mt-3 flex flex-wrap items-baseline gap-2">
+//           <span className="text-lg font-bold text-gray-900">
+//             ${price.toFixed(2)}
+//           </span>
+
+//           {previousPrice > price && (
+//             <span className="text-sm text-gray-400 line-through">
+//               ${previousPrice.toFixed(2)}
+//             </span>
+//           )}
+//         </div>
+
+//         {/* ONE add-to-cart component */}
+//         <div className="mt-auto pt-4">
+//           <AddToCartButton
+//             product={product}
+//             className="h-10 rounded-full text-xs sm:text-sm"
+//           />
+//         </div>
+//       </div>
+//     </article>
+//   );
+// };
+
+// export default ProductCard;

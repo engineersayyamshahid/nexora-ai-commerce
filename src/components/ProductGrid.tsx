@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -6,23 +7,37 @@ import { productType } from "@/constants/data";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { motion, AnimatePresence } from "motion/react";
-import { Loader2, Star, ShoppingBag, Flame } from "lucide-react";
+import {
+  Loader2,
+  Flame,
+  Tag,
+  Sparkles,
+  ImageOff,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import NoProductAvailable from "./NoPruductAvailable";
-import AddToWishlistButton from "./AddToWishlistButton";
+import AddToCartButton from "@/components/AddToCartButton";
+import FavouriteButton from "@/components/FavouriteButton";
 
-export interface Product {
+interface Product {
   _id: string;
   name?: string;
   title?: string;
   slug?: { current: string };
   image?: any;
+  images?: any[];
+  mainImage?: any;
   price?: number;
   previousPrice?: number;
   stock?: number;
   variant?: string;
+  status?: string;
   categories?: string[];
+}
+
+interface ProductCardProps {
+  product: Product;
 }
 
 function ProductGrid() {
@@ -30,7 +45,7 @@ function ProductGrid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedTab, setSelectedTab] = useState(
-    productType[0]?.title || ""
+    productType[0]?.title || "All Products"
   );
 
   useEffect(() => {
@@ -41,17 +56,22 @@ function ProductGrid() {
       setError("");
 
       try {
-        // Updated query to fetch image, price, stock, slug, etc.
+        // Supports common image field names.
+        // Confirm these fields exist in your Sanity product schema.
         const query = `*[_type == "product"] | order(_createdAt desc) {
           _id,
           name,
           title,
           slug,
           image,
+          images,
+          mainImage,
+          "displayImage": coalesce(images[0], image, mainImage),
           price,
           previousPrice,
           stock,
           variant,
+          status,
           "categories": categories[]->title
         }`;
 
@@ -59,13 +79,28 @@ function ProductGrid() {
 
         if (!isMounted) return;
 
-        const filteredProducts = selectedTab
-          ? data.filter(
-              (product) =>
-                product.variant?.trim().toLowerCase() ===
-                selectedTab.trim().toLowerCase()
-            )
-          : data;
+        const tab = selectedTab.trim().toLowerCase();
+
+        const isAllProductsTab = [
+          "",
+          "all",
+          "all products",
+          "all categories",
+        ].includes(tab);
+
+        const filteredProducts = isAllProductsTab
+          ? data
+          : data.filter((product) => {
+              const matchesVariant =
+                product.variant?.trim().toLowerCase() === tab;
+
+              const matchesCategory = product.categories?.some(
+                (category) =>
+                  category.trim().toLowerCase() === tab
+              );
+
+              return matchesVariant || matchesCategory;
+            });
 
         setProducts(filteredProducts);
       } catch (err) {
@@ -101,15 +136,19 @@ function ProductGrid() {
       />
 
       {loading ? (
-        <div className="mt-10 flex min-h-80 w-full flex-col items-center justify-center gap-4 bg-gray-50 py-10 rounded-lg">
-          <div className="flex items-center space-x-2 text-shop_dark_green">
+        <div className="mt-10 flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-lg bg-gray-50 py-10">
+          <div className="flex items-center gap-2 text-shop_dark_green">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="font-medium">Products are loading...</span>
+            <span className="font-medium">
+              Products are loading...
+            </span>
           </div>
         </div>
       ) : error ? (
         <div className="py-10 text-center">
-          <p className="text-red-500 font-semibold">Failed to load products.</p>
+          <p className="font-semibold text-red-500">
+            Failed to load products.
+          </p>
           <p className="mt-2 text-sm text-gray-500">{error}</p>
         </div>
       ) : products.length > 0 ? (
@@ -123,83 +162,10 @@ function ProductGrid() {
             className="grid grid-cols-2 gap-4 py-6 md:grid-cols-3 lg:grid-cols-5"
           >
             {products.map((product) => (
-              <motion.article
+              <ProductCardItem
                 key={product._id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-                className="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  {/* Top Badges & Wishlist */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="flex items-center gap-1 bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded-full font-medium">
-                      <Flame className="w-3.5 h-3.5" /> Hot
-                    </span>
-                    <AddToWishlistButton product={product} />
-                  </div>
-
-                  {/* Product Image */}
-                  <div className="relative w-full h-40 mb-3 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-                    {product.image ? (
-                      <Image
-                        src={urlFor(product.image).url()}
-                        alt={product.name || product.title || "Product image"}
-                        fill
-                        className="object-contain object-center group-hover:scale-105 transition-transform duration-300 p-2"
-                      />
-                    ) : (
-                      <span className="text-xs text-gray-400">No Image</span>
-                    )}
-                  </div>
-
-                  {/* Categories */}
-                  {!!product.categories?.length && (
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-                      {product.categories.join(", ")}
-                    </p>
-                  )}
-
-                  {/* Title */}
-                  <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 mb-2 group-hover:text-shop_dark_green transition-colors">
-                    {product.name || product.title || "Untitled product"}
-                  </h3>
-
-                  {/* Rating / Reviews Placeholder */}
-                  <div className="flex items-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-xs text-gray-500 ml-1">(5 Reviews)</span>
-                  </div>
-
-                  {/* Stock Status */}
-                  <p className="text-xs text-gray-600 mb-2">
-                    In Stock <span className="font-semibold text-gray-800">{product.stock ?? 10}</span>
-                  </p>
-                </div>
-
-                <div>
-                  {/* Pricing */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base font-bold text-gray-900">
-                      ${product.price?.toFixed(2) ?? "0.00"}
-                    </span>
-                    {product.previousPrice && (
-                      <span className="text-xs text-gray-400 line-through">
-                        ${product.previousPrice.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <button className="w-full flex items-center justify-center gap-2 bg-shop_dark_green text-white text-xs font-semibold py-2.5 px-4 rounded-lg hover:bg-shop_light_green hoverEffect">
-                    <ShoppingBag className="w-4 h-4" />
-                    Add to Cart
-                  </button>
-                </div>
-              </motion.article>
+                product={product}
+              />
             ))}
           </motion.div>
         </AnimatePresence>
@@ -207,6 +173,170 @@ function ProductGrid() {
         <NoProductAvailable selectedTab={selectedTab} />
       )}
     </section>
+  );
+}
+
+function ProductCardItem({ product }: ProductCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  const name = product.name || product.title || "Untitled product";
+  const price = product.price ?? 0;
+  const previousPrice = product.previousPrice ?? 0;
+  const stock = product.stock ?? 0;
+  const status = product.status?.trim().toLowerCase() ?? "";
+
+  const isHot = status === "hot";
+  const isNew = status === "new";
+  const isSale =
+    status === "sale" ||
+    (previousPrice > price && previousPrice > 0);
+
+  const discount =
+    previousPrice > price && previousPrice > 0
+      ? Math.round(
+          ((previousPrice - price) / previousPrice) * 100
+        )
+      : 0;
+
+  const productImage =
+    product.images?.[0] ??
+    product.image ??
+    product.mainImage;
+
+  let imageUrl = "";
+
+  try {
+    if (productImage) {
+      imageUrl = urlFor(productImage)
+        .width(800)
+        .height(800)
+        .url();
+    }
+  } catch (err) {
+    console.error("Unable to build product image URL:", err);
+  }
+
+  const productHref = `/product/${
+    product.slug?.current || product._id
+  }`;
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.25 }}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all hover:shadow-md sm:p-4"
+    >
+      <div>
+        {/* Hot, Sale and New badges */}
+        <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+          {isHot && (
+            <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-600">
+              <Flame className="h-3.5 w-3.5" />
+              Hot
+            </span>
+          )}
+
+          {isSale && (
+            <span className="flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+              <Tag className="h-3.5 w-3.5" />
+              {discount > 0 ? `-${discount}%` : "Sale"}
+            </span>
+          )}
+
+          {isNew && (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+              <Sparkles className="h-3.5 w-3.5" />
+              New
+            </span>
+          )}
+        </div>
+
+        {/* Wishlist only; no Add to Cart button here */}
+        <div className="absolute right-3 top-3 z-10">
+          <FavouriteButton
+            showProduct
+            product={product as any}
+          />
+        </div>
+
+        {/* Product image */}
+        <Link
+          href={productHref}
+          className="relative mb-3 flex h-40 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-48"
+        >
+          {imageUrl && !imageError ? (
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <ImageOff className="h-8 w-8" />
+              <span className="text-xs">
+                Image unavailable
+              </span>
+            </div>
+          )}
+        </Link>
+
+        {/* Categories */}
+        {!!product.categories?.length && (
+          <p className="mb-1 line-clamp-1 text-xs uppercase tracking-wider text-gray-400">
+            {product.categories.join(", ")}
+          </p>
+        )}
+
+        {/* Product name */}
+        <Link href={productHref}>
+          <h3 className="mb-2 line-clamp-2 text-sm font-semibold text-gray-800 transition-colors group-hover:text-shop_dark_green">
+            {name}
+          </h3>
+        </Link>
+
+        {/* Stock */}
+        <p className="mb-3 text-xs text-gray-600">
+          {stock > 0 ? (
+            <>
+              In stock:{" "}
+              <span className="font-semibold text-green-700">
+                {stock}
+              </span>
+            </>
+          ) : (
+            <span className="font-semibold text-red-500">
+              Out of stock
+            </span>
+          )}
+        </p>
+      </div>
+
+      <div>
+        {/* Price */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-base font-bold text-gray-900">
+            ${price.toFixed(2)}
+          </span>
+
+          {previousPrice > price && (
+            <span className="text-xs text-gray-400 line-through">
+              ${previousPrice.toFixed(2)}
+            </span>
+          )}
+        </div>
+
+        {/* Exactly one Add to Cart button */}
+        <AddToCartButton
+          product={product as any}
+          className="w-full rounded-lg"
+        />
+      </div>
+    </motion.article>
   );
 }
 
@@ -220,15 +350,27 @@ export default ProductGrid;
 // import HomeTabBar from "./HomeTabBar";
 // import { productType } from "@/constants/data";
 // import { client } from "@/sanity/lib/client";
+// import { urlFor } from "@/sanity/lib/image";
 // import { motion, AnimatePresence } from "motion/react";
-// import { Loader2 } from "lucide-react";
+// import { Loader2, Flame, Tag, Sparkles, ImageOff } from "lucide-react";
+// import Image from "next/image";
+// import Link from "next/link";
 // import NoProductAvailable from "./NoPruductAvailable";
+// import AddToCartButton from "@/components/AddToCartButton";
+// import FavouriteButton from "@/components/FavouriteButton";
 
 // interface Product {
 //   _id: string;
 //   name?: string;
 //   title?: string;
+//   slug?: { current: string };
+//   image?: any;
+//   images?: any[];
+//   price?: number;
+//   previousPrice?: number;
+//   stock?: number;
 //   variant?: string;
+//   status?: string;
 //   categories?: string[];
 // }
 
@@ -252,14 +394,18 @@ export default ProductGrid;
 //           _id,
 //           name,
 //           title,
+//           slug,
+//           image,
+//           images,
+//           price,
+//           previousPrice,
+//           stock,
 //           variant,
+//           status,
 //           "categories": categories[]->title
 //         }`;
 
 //         const data = await client.fetch<Product[]>(query);
-
-//         console.log("Sanity products:", data);
-//         console.log("Selected tab:", selectedTab);
 
 //         if (!isMounted) return;
 
@@ -284,9 +430,7 @@ export default ProductGrid;
 //           );
 //         }
 //       } finally {
-//         if (isMounted) {
-//           setLoading(false);
-//         }
+//         if (isMounted) setLoading(false);
 //       }
 //     }
 
@@ -298,27 +442,25 @@ export default ProductGrid;
 //   }, [selectedTab]);
 
 //   return (
-//     <section>
+//     <section className="py-6">
 //       <HomeTabBar
 //         selectedTab={selectedTab}
 //         onTabSelect={setSelectedTab}
 //       />
 
 //       {loading ? (
-//         <div className="mt-10 flex min-h-80 w-full flex-col items-center justify-center gap-4 bg-gray-100 py-10">
-//           <div className="flex items-center space-x-2 text-blue-600">
-//             <Loader2 className="h-6 w-5 animate-spin" />
-//             <span>Products are loading...</span>
+//         <div className="mt-10 flex min-h-80 w-full flex-col items-center justify-center gap-4 rounded-lg bg-gray-50 py-10">
+//           <div className="flex items-center gap-2 text-shop_dark_green">
+//             <Loader2 className="h-6 w-6 animate-spin" />
+//             <span className="font-medium">Products are loading...</span>
 //           </div>
 //         </div>
 //       ) : error ? (
 //         <div className="py-10 text-center">
-//           <p className="text-red-500">
+//           <p className="font-semibold text-red-500">
 //             Failed to load products.
 //           </p>
-//           <p className="mt-2 text-sm text-gray-500">
-//             {error}
-//           </p>
+//           <p className="mt-2 text-sm text-gray-500">{error}</p>
 //         </div>
 //       ) : products.length > 0 ? (
 //         <AnimatePresence mode="wait">
@@ -328,30 +470,59 @@ export default ProductGrid;
 //             animate={{ opacity: 1 }}
 //             exit={{ opacity: 0 }}
 //             transition={{ duration: 0.3 }}
-//             className="grid grid-cols-2 gap-2.5 py-6 md:grid-cols-3 lg:grid-cols-5"
+//             className="grid grid-cols-2 gap-4 py-6 md:grid-cols-3 lg:grid-cols-5"
 //           >
-//             {products.map((product) => (
-//               <motion.article
-//                 key={product._id}
-//                 initial={{ opacity: 0, y: 15 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//                 exit={{ opacity: 0, y: -10 }}
-//                 transition={{ duration: 0.25 }}
-//                 className="rounded-lg border border-shop_light_green/20 p-4"
-//               >
-//                 <h3 className="font-semibold">
-//                   {product.name ||
-//                     product.title ||
-//                     "Untitled product"}
-//                 </h3>
+//             {products.map((product) => {
+//               const name =
+//                 product.name || product.title || "Untitled product";
 
-//                 {!!product.categories?.length && (
-//                   <p className="mt-2 text-sm text-gray-500">
-//                     {product.categories.join(", ")}
-//                   </p>
-//                 )}
-//               </motion.article>
-//             ))}
+//               const price = product.price ?? 0;
+//               const previousPrice = product.previousPrice ?? 0;
+//               const stock = product.stock ?? 0;
+//               const status = product.status?.toLowerCase() ?? "";
+
+//               const isHot = status === "hot";
+//               const isNew = status === "new";
+//               const isSale =
+//                 status === "sale" ||
+//                 (previousPrice > price && previousPrice > 0);
+
+//               const discount =
+//                 previousPrice > price && previousPrice > 0
+//                   ? Math.round(
+//                       ((previousPrice - price) / previousPrice) * 100
+//                     )
+//                   : 0;
+
+//               // Supports either a single Sanity image field or an image array.
+//               const productImage =
+//                 product.images?.[0] ?? product.image;
+
+//               const imageUrl = productImage
+//                 ? urlFor(productImage).width(800).height(800).url()
+//                 : "";
+
+//               const productHref = `/product/${
+//                 product.slug?.current || product._id
+//               }`;
+
+//               return (
+//                 <ProductCardItem
+//                   key={product._id}
+//                   product={product}
+//                   name={name}
+//                   price={price}
+//                   previousPrice={previousPrice}
+//                   stock={stock}
+//                   isHot={isHot}
+//                   isNew={isNew}
+//                   isSale={isSale}
+//                   discount={discount}
+//                   imageUrl={imageUrl}
+//                   productHref={productHref}
+//                 />
+//               );
+//             })}
 //           </motion.div>
 //         </AnimatePresence>
 //       ) : (
@@ -361,4 +532,144 @@ export default ProductGrid;
 //   );
 // }
 
+// function ProductCardItem({
+//   product,
+//   name,
+//   price,
+//   previousPrice,
+//   stock,
+//   isHot,
+//   isNew,
+//   isSale,
+//   discount,
+//   imageUrl,
+//   productHref,
+// }: {
+//   product: Product;
+//   name: string;
+//   price: number;
+//   previousPrice: number;
+//   stock: number;
+//   isHot: boolean;
+//   isNew: boolean;
+//   isSale: boolean;
+//   discount: number;
+//   imageUrl: string;
+//   productHref: string;
+// }) {
+//   const [imageError, setImageError] = useState(false);
+
+//   return (
+//     <motion.article
+//       initial={{ opacity: 0, y: 15 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       exit={{ opacity: 0, y: -10 }}
+//       transition={{ duration: 0.25 }}
+//       className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all hover:shadow-md sm:p-4"
+//     >
+//       <div>
+//         {/* Product badges and wishlist; no Add to Cart button here */}
+//         <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+//           {isHot && (
+//             <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-600">
+//               <Flame className="h-3.5 w-3.5" />
+//               Hot
+//             </span>
+//           )}
+
+//           {isSale && (
+//             <span className="flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+//               <Tag className="h-3.5 w-3.5" />
+//               {discount > 0 ? `-${discount}%` : "Sale"}
+//             </span>
+//           )}
+
+//           {isNew && (
+//             <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+//               <Sparkles className="h-3.5 w-3.5" />
+//               New
+//             </span>
+//           )}
+//         </div>
+
+//         <div className="absolute right-3 top-3 z-10">
+//           <FavouriteButton showProduct product={product as any} />
+//         </div>
+
+//         {/* Product image */}
+//         <Link
+//           href={productHref}
+//           className="relative mb-3 flex h-40 items-center justify-center overflow-hidden rounded-lg bg-gray-50 sm:h-48"
+//         >
+//           {imageUrl && !imageError ? (
+//             <Image
+//               src={imageUrl}
+//               alt={name}
+//               fill
+//               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+//               className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+//               onError={() => setImageError(true)}
+//             />
+//           ) : (
+//             <div className="flex flex-col items-center gap-2 text-gray-400">
+//               <ImageOff className="h-8 w-8" />
+//               <span className="text-xs">Image unavailable</span>
+//             </div>
+//           )}
+//         </Link>
+
+//         {/* Categories */}
+//         {!!product.categories?.length && (
+//           <p className="mb-1 line-clamp-1 text-xs uppercase tracking-wider text-gray-400">
+//             {product.categories.join(", ")}
+//           </p>
+//         )}
+
+//         {/* Product title */}
+//         <Link href={productHref}>
+//           <h3 className="mb-2 line-clamp-2 text-sm font-semibold text-gray-800 transition-colors group-hover:text-shop_dark_green">
+//             {name}
+//           </h3>
+//         </Link>
+
+//         {/* Real stock information */}
+//         <p className="mb-3 text-xs text-gray-600">
+//           {stock > 0 ? (
+//             <>
+//               In stock:{" "}
+//               <span className="font-semibold text-green-700">{stock}</span>
+//             </>
+//           ) : (
+//             <span className="font-semibold text-red-500">Out of stock</span>
+//           )}
+//         </p>
+//       </div>
+
+//       <div>
+//         {/* Price */}
+//         <div className="mb-3 flex flex-wrap items-center gap-2">
+//           <span className="text-base font-bold text-gray-900">
+//             ${price.toFixed(2)}
+//           </span>
+
+//           {previousPrice > price && (
+//             <span className="text-xs text-gray-400 line-through">
+//               ${previousPrice.toFixed(2)}
+//             </span>
+//           )}
+//         </div>
+
+//         {/* Exactly one Add to Cart component per product */}
+//         <AddToCartButton
+//           product={product as any}
+//           className="w-full rounded-lg"
+//         />
+//       </div>
+//     </motion.article>
+//   );
+// }
+
 // export default ProductGrid;
+
+
+
