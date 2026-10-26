@@ -7,13 +7,13 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Flame,
-  ShoppingBag,
   Star,
   ImageOff,
 } from "lucide-react";
 
 import AddToCartButton from "@/components/AddToCartButton";
 import AddToWishlistButton from "@/components/AddToWishlistButton";
+import PriceView from "./PriceView";
 
 interface ProductCardProps {
   product: Product;
@@ -22,10 +22,10 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
 
-  // Cast product / access properties safely to satisfy TypeScript
   const rawProduct = product as Product & {
     title?: string;
     previousPrice?: number;
+    discount?: number;
   };
 
   const name = product.name || rawProduct.title || "Untitled product";
@@ -43,9 +43,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     (previousPrice > 0 && previousPrice > price);
 
   const discount =
-    previousPrice > price && previousPrice > 0
+    rawProduct.discount ??
+    (previousPrice > price && previousPrice > 0
       ? Math.round(((previousPrice - price) / previousPrice) * 100)
-      : 0;
+      : 0);
 
   const image = product.images?.[0];
 
@@ -53,7 +54,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
     ? urlFor(image).width(800).height(800).fit("max").url()
     : null;
 
-  // Use only real review data when available.
   const productData = product as Product & {
     rating?: number;
     reviewsCount?: number;
@@ -146,7 +146,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </h3>
         </Link>
 
-        {/* Actual rating data only */}
+        {/* Rating and Reviews */}
         {rating > 0 && (
           <div className="mt-2 flex items-center gap-1.5">
             <div className="flex items-center text-amber-400">
@@ -162,41 +162,29 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
             {reviewsCount > 0 && (
               <span className="text-xs text-gray-500">
-                ({reviewsCount})
+                {reviewsCount} Reviews
               </span>
             )}
           </div>
         )}
 
         {/* Stock */}
-        <p
-          className={`mt-2 text-xs ${
-            stock > 0 ? "text-emerald-700" : "text-red-600"
-          }`}
-        >
+        <p className="mt-2 text-xs text-gray-600">
           {stock > 0 ? (
             <>
-              In stock: <span className="font-semibold">{stock}</span>
+              In Stock <span className="font-semibold text-emerald-600">{stock}</span>
             </>
           ) : (
-            "Out of stock"
+            <span className="text-red-600">Out of stock</span>
           )}
         </p>
 
-        {/* Price */}
-        <div className="mt-3 flex flex-wrap items-baseline gap-2">
-          <span className="text-lg font-bold text-gray-900">
-            ${price.toFixed(2)}
-          </span>
-
-          {previousPrice > price && (
-            <span className="text-sm text-gray-400 line-through">
-              ${previousPrice.toFixed(2)}
-            </span>
-          )}
+        {/* Price View Component (Handles both current and previous prices cleanly) */}
+        <div className="mt-3">
+          <PriceView price={price} previousPrice={previousPrice} />
         </div>
 
-        {/* ONE add-to-cart component */}
+        {/* Add-to-cart component */}
         <div className="mt-auto pt-4">
           <AddToCartButton
             product={product}
@@ -212,7 +200,6 @@ export default ProductCard;
 
 
 
-
 // "use client";
 
 // import type { Product } from "../../sanity.types";
@@ -222,14 +209,14 @@ export default ProductCard;
 // import { useState } from "react";
 // import {
 //   Flame,
-//   Heart,
 //   ShoppingBag,
 //   Star,
 //   ImageOff,
 // } from "lucide-react";
 
 // import AddToCartButton from "@/components/AddToCartButton";
-// import FavouriteButton from "@/components/FavouriteButton";
+// import AddToWishlistButton from "@/components/AddToWishlistButton";
+// import PriceView from "./PriceView";
 
 // interface ProductCardProps {
 //   product: Product;
@@ -319,10 +306,8 @@ export default ProductCard;
 //         )}
 //       </div>
 
-//       {/* Wishlist */}
-//       <div className="absolute right-5 top-5 z-20">
-//         <FavouriteButton showProduct product={product} />
-//       </div>
+//       {/* Wishlist Button */}
+//       <AddToWishlistButton product={product} />
 
 //       {/* Product image */}
 //       <Link
@@ -401,6 +386,8 @@ export default ProductCard;
 //           )}
 //         </p>
 
+//         <PriceView price={product?.price} discount={product?.discount} className="text-sm"/>
+
 //         {/* Price */}
 //         <div className="mt-3 flex flex-wrap items-baseline gap-2">
 //           <span className="text-lg font-bold text-gray-900">
@@ -427,4 +414,6 @@ export default ProductCard;
 // };
 
 // export default ProductCard;
+
+
 

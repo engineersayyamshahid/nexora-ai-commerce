@@ -1,0 +1,30 @@
+{
+  "header": {
+    "home": "Home",
+    "shop": "Negozio",
+    "blog": "Blog",
+    "contact": "Contatti",
+    "hotDeal": "Offerte",
+    "login": "Accedi"
+  },
+  "banner": {
+    "title": "Fino al 50% di sconto su cuffie selezionate",
+    "buyNow": "Acquista ora"
+  },
+  "shop": {
+    "inStock": "Disponibile",
+    "reviews": "Recensioni",
+    "seeAll": "Vedi tutti",
+    "addToCart": "Aggiungi al carrello"
+  },
+  "footer": {
+    "quickLinks": "Link rapidi",
+    "categories": "Categorie",
+    "newsletter": "Newsletter",
+    "subscribe": "Iscriviti",
+    "visitUs": "Vienici a trovare",
+    "callUs": "Chiamaci",
+    "workingHours": "Orari di lavoro",
+    "emailUs": "Inviaci un'e-mail"
+  }
+}

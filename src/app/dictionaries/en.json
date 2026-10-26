@@ -1,0 +1,30 @@
+{
+  "header": {
+    "home": "Home",
+    "shop": "Shop",
+    "blog": "Blog",
+    "contact": "Contact",
+    "hotDeal": "Hot Deal",
+    "login": "Login"
+  },
+  "banner": {
+    "title": "Grab Upto 50% Off On Selected Headphone",
+    "buyNow": "Buy Now"
+  },
+  "shop": {
+    "inStock": "In Stock",
+    "reviews": "Reviews",
+    "seeAll": "See All",
+    "addToCart": "Add to Cart"
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "categories": "Categories",
+    "newsletter": "Newsletter",
+    "subscribe": "Subscribe",
+    "visitUs": "Visit Us",
+    "callUs": "Call Us",
+    "workingHours": "Working Hours",
+    "emailUs": "Email Us"
+  }
+}

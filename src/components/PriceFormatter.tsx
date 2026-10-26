@@ -1,29 +1,22 @@
+import { cn } from "@/lib/utils";
 
-"use client";
-
-import { twMerge } from "tailwind-merge";
-
-interface Props{
+interface Props {
   amount: number | undefined;
-  className?:string;
-}
-
-interface PriceFormatterProps {
-  amount: number;
   className?: string;
 }
 
-export default function PriceFormatter({
-  amount,
-  className = "",
-}: PriceFormatterProps) {
+const PriceFormatter = ({ amount, className }: Props) => {
+  const formattedPrice = new Number(amount).toLocaleString("en-PK", {
+    currency: "PKR",
+    style: "currency",
+    minimumFractionDigits: 2,
+  });
+  
   return (
-    <span className={className}>
-      {new Intl.NumberFormat("en-PK", {
-        style: "currency",
-        currency: "PKR",
-        maximumFractionDigits: 0,
-      }).format(amount)}
+    <span className={cn("text-sm font-semibold text-darkColor", className)}>
+      {formattedPrice}
     </span>
   );
-}
+};
+
+export default PriceFormatter;

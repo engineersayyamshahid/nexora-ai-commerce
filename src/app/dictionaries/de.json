@@ -1,0 +1,30 @@
+{
+  "header": {
+    "home": "Startseite",
+    "shop": "Shop",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "hotDeal": "Top Angebot",
+    "login": "Anmelden"
+  },
+  "banner": {
+    "title": "Bis zu 50% Rabatt auf ausgewählte Kopfhörer",
+    "buyNow": "Jetzt kaufen"
+  },
+  "shop": {
+    "inStock": "Auf Lager",
+    "reviews": "Bewertungen",
+    "seeAll": "Alle anzeigen",
+    "addToCart": "In den Warenkorb"
+  },
+  "footer": {
+    "quickLinks": "Quick-Links",
+    "categories": "Kategorien",
+    "newsletter": "Newsletter",
+    "subscribe": "Abonnieren",
+    "visitUs": "Besuchen Sie uns",
+    "callUs": "Rufen Sie uns an",
+    "workingHours": "Arbeitszeiten",
+    "emailUs": "E-Mail senden"
+  }
+}

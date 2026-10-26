@@ -1,0 +1,32 @@
+{
+  "header": {
+    "home": "ہوم",
+    "shop": "شاپ",
+    "blog": "بلاگ",
+    "contact": "رابطہ",
+    "hot deal": "خاص پیشکش",
+    "login": "لاگ ان"
+  },
+  "shop": {
+    "seeAll": "سب دیکھیں",
+    "gadget": "گیجٹس",
+    "appliances": "آلات",
+    "refrigerators": "فرج",
+    "others": "دیگر",
+    "inStock": "اسٹاک میں",
+    "reviews": "رائے",
+    "addToCart": "ٹوکری میں ڈالیں"
+  },
+  "footer": {
+    "visitUs": "ہماری جگہ",
+    "callUs": "کال کریں",
+    "workingHours": "کام کے اوقات",
+    "emailUs": "ای میل کریں",
+    "quickLinks": "اہم لنکس",
+    "categories": "اقسام",
+    "newsletter": "نیوز لیٹر",
+    "subscribe": "سبسکرائب کریں",
+    "emailPlaceholder": "اپنا ای میل درج کریں",
+    "allRightsReserved": "تمام حقوق محفوظ ہیں۔"
+  }
+}

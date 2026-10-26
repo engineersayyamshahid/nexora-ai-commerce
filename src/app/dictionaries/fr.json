@@ -1,0 +1,30 @@
+{
+  "header": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "blog": "Blog",
+    "contact": "Contact",
+    "hotDeal": "Offre Spéciale",
+    "login": "Connexion"
+  },
+  "banner": {
+    "title": "Jusqu'à 50% de réduction sur une sélection de casques",
+    "buyNow": "Acheter maintenant"
+  },
+  "shop": {
+    "inStock": "En stock",
+    "reviews": "Avis",
+    "seeAll": "Voir tout",
+    "addToCart": "Ajouter au panier"
+  },
+  "footer": {
+    "quickLinks": "Liens rapides",
+    "categories": "Catégories",
+    "newsletter": "Bulletin d'information",
+    "subscribe": "S'abonner",
+    "visitUs": "Rendez-nous visite",
+    "callUs": "Appelez-nous",
+    "workingHours": "Heures d'ouverture",
+    "emailUs": "Envoyez-nous un e-mail"
+  }
+}
