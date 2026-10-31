@@ -1,6 +1,6 @@
 "use client";
 
-import type { Product } from "../../sanity.types";
+import type { Product } from "../sanity.types";
 import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
 import Link from "next/link";

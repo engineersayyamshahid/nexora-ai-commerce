@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Product } from "../../sanity.types";
+import type { Product } from "../sanity.types";
 import useStore from "../store/index";
 import { Heart } from "lucide-react";
 import Link from "next/link";

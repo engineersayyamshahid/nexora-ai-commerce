@@ -3,7 +3,7 @@ import {
   internalGroqTypeReferenceTo,
   SanityImageCrop,
   SanityImageHotspot,
-} from "../../sanity.types";
+} from "../sanity.types";
 import { urlFor } from "@/sanity/lib/image";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";

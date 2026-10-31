@@ -3,7 +3,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { Product } from "../../sanity.types";
+import type { Product } from "../sanity.types";
 
 interface StoreState {
   items: Product[];
